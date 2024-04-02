@@ -209,7 +209,7 @@ const UsuarioDePublicacion = () => {
                 }
                  className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md">
                   <FontAwesomeIcon icon={faThumbsUp} />
-                  <p>{publicacion.likes}</p>
+                  <p>{publicacion.likes.length}</p>
                 </button>
 
                   <button type="" className="boton-responder">
