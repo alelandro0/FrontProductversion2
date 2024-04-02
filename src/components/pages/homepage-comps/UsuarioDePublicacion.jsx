@@ -18,7 +18,10 @@ const UsuarioDePublicacion = () => {
   const usuario = async () => {
     try {
       const response = await fetch(`${API_URL}/profileSearch/${auth.nombreUsuario}`, {
-        method: "GET",
+        method: "GET",  
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       console.log('este es response ', response);
       if (!response.ok) {
