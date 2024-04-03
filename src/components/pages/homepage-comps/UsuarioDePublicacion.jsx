@@ -12,13 +12,17 @@ import './style.css'
 const UsuarioDePublicacion = () => {
   const [datos, setDatos] = useState('')
   const [modalIsOpen, setModalIsOpen] = useState(false)
-  const [like, setLike] =useState(false)
+  const [like, setLike] = useState(false)
+  const [nuevoComentario, setNuevoComentario] = useState('');
+  const [verComentario, setVerComentario] = useState({})
+  const [mostrarComentarios, setMostrarComentarios] = useState({});
+
   const auth = useAuth();
 
   const usuario = async () => {
     try {
       const response = await fetch(`${API_URL}/profileSearch/${auth.nombreUsuario}`, {
-        method: "GET",  
+        method: "GET",
         headers: {
           'Content-Type': 'application/json',
         },
@@ -77,23 +81,23 @@ const UsuarioDePublicacion = () => {
 
 
   //LIKES Y DESLIKES
-  const HandleLikes = async(userId,publicationId) => {
-   
+  const HandleLikes = async (userId, publicationId) => {
+
     if (!like) {
-      console.log(userId,"  ",publicationId );
+      console.log(userId, "  ", publicationId);
       try {
-        const responseLikes = await fetch(`${API_URL}/likes`, {  
+        const responseLikes = await fetch(`${API_URL}/likes`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({userId,publicationId})
+          body: JSON.stringify({ userId, publicationId })
         });
-        
+
         if (!responseLikes.ok) {
           throw new Error('No se pudo dar like a la publicación');
         }
-  
+
         const data = await responseLikes.json();
         usuario()
         setLike(true)
@@ -110,7 +114,7 @@ const UsuarioDePublicacion = () => {
           },
           body: JSON.stringify({ userId, publicationId })
         });
-  
+
         if (!responseDislike.ok) {
           throw new Error('No se pudo quitar el like de la publicación');
         }
@@ -122,6 +126,57 @@ const UsuarioDePublicacion = () => {
       }
     }
   };
+  const agregarComentario = async (userId, publicationId, comentario) => {
+    console.log("userId:", userId);
+    console.log("publicationId:", publicationId);
+    console.log("comentario:", comentario);
+    try {
+      const response = await fetch(`${API_URL}/comentario`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, publicationId, comentario }),
+      });
+      const data = await response.json();
+      usuario()
+      // Manejar la respuesta del servidor (mostrar mensaje de éxito/error, actualizar la interfaz, etc.)
+      console.log(data.message);
+    } catch (error) {
+      console.error('Error al agregar comentario:', error);
+    }
+  };
+  const verComentarios = async (_id, publicationId) => {
+    console.log('publicacion', publicationId);
+    console.log('usuario', _id);
+    try {
+      const response = await fetch(`${API_URL}/vercomentario/${_id}/${publicationId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('respose de comentarios', response);
+      if (!response.ok) {
+        throw new Error('Error al obtener los comentarios');
+      }
+
+      const data = await response.json();
+      console.log('comentarios', data);
+      setVerComentario(prevState => ({
+        ...prevState,
+        [publicationId]: data,
+      }));
+      setMostrarComentarios(prevState => ({
+        ...prevState,
+        [publicationId]: !prevState[publicationId],
+      }));
+      usuario()
+    } catch (error) {
+      console.error('Error al obtener los comentarios:', error.message);
+    }
+  }
+
 
 
   return (
@@ -204,30 +259,68 @@ const UsuarioDePublicacion = () => {
                   <img src={publicacion.image} />
                 </div>
                 <div className="botones-comentario">
-                <button type=""
-                onClick={()=> HandleLikes(publicacion.profesionalId,publicacion._id)
-                }
-                 className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md">
-                  <FontAwesomeIcon icon={faThumbsUp} />
-                  <p>{publicacion.likes.length}</p>
-                </button>
+                  <button type=""
+                    onClick={() => HandleLikes(publicacion.profesionalId, publicacion._id)
+                    }
+                    className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md">
+                    <FontAwesomeIcon icon={faThumbsUp} />
+                    <p>{publicacion.likes.length}</p>
+                  </button>
 
-                  <button type="" className="boton-responder">
+                  <div>
+                    <label htmlFor="comment"> </label>
+                    <input
+                      type="text"
+                      className="border m-8 w-4/5 sm:w-80 md:w-96 lg:w-4/5 xl:w-4/5 border-gray-300 rounded-md py-2 px-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                      name="comment"
+                      value={nuevoComentario}
+                      onChange={(e) => setNuevoComentario(e.target.value)}
+                      placeholder="Escribe tu comentario..."
+                    />
+
+
+
+                  </div>
+                  {console.log("ide el profesiona de comen", publicacion.profesionalId)}
+                  <button type="" className="boton-responder" onClick={() => agregarComentario(publicacion?.profesionalId, publicacion?._id, nuevoComentario)}>
                     Comentar
                   </button>
+                  <button className="boton-responder"
+                    onClick={() => verComentarios(publicacion?.profesionalId, publicacion?._id)}
+                  >ver</button>
+                  {console.log("id usuario userId ", publicacion._id)}
+                  {mostrarComentarios[publicacion._id] && (
+                    <div className="py-4">
+                      {verComentario[publicacion._id] && verComentario[publicacion._id].comentarios && verComentario[publicacion._id].comentarios.length > 0 ? (
+                        verComentario[publicacion._id].comentarios.map((comentario, index) => (
+                          <div key={index} className="mb-4">
+                            <div className="flex items-start">
+                              <img
+                                src={comentario.imagenPerfil}
+                                alt="Imagen de perfil"
+                                className="w-12 h-12 rounded-full border-2 border-white mr-4 bg-white"
+                              />
+                              <div className="flex-1">
+                                <h1 className="text-white mb-2">{comentario.nombre}</h1>
+                                <div className="border border-white rounded-md p-4 bg-gray-900">
+                                  <p className="text-white">{comentario.respuesta}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-white">No hay comentarios</p>
+                      )}
+                    </div>
+                  )}
+
+
                 </div>
               </div>
             ))}
           </div>
-
-
           {/* {puplicaiones personales} */}
-
-
-
-
-
-
           <div style={{ height: 100 }}></div>
           {/* todas las publicaciones */}
         </section>

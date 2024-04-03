@@ -12,7 +12,7 @@ body {
 }
 
 .publicacion-cometario {
-    width: 50%;
+    width: 55%;
     display: grid;
     grid-template-columns: 1fr; /* Una sola columna */
     gap: 20px; /* Espacio entre elementos */
@@ -93,7 +93,7 @@ body {
     border-radius: 12px;
     padding: 10px; /* Reducir el padding */
     margin: 0 auto; /* Centrar horizontalmente */
-    width: 100%;
+    width: 90%;
     height: auto;
 }
 
@@ -153,13 +153,14 @@ body {
     margin-bottom: -0.5rem;
     background-color: black;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 2px;
-    width: 50%;
+   
     padding: 27px;
     border-radius: 12px;
+    height: 25vh;
     margin-top: 3px;
 }
 
-.comentar-publicacion .avatar, .publicacion-realizada .usuario-publico .avatar, .contenedor-comentarios .comentario-principal-usuario .avatar, .area-comentar .avatar {
+.comentar-publicacion .avatar, .publicacion-realizada .usuario-publico .avatar, .contenedor-comentarios .comentario-principal-usuario .avatar,  .avatar {
     display: flex;
     width: 65px;
     height: 65px;
@@ -178,7 +179,7 @@ body {
     padding-left: 10px;
 }
 
-.contenedor-comentarios .comentario-principal-usuario .texto, .area-comentar .inputs-comentarios .area-comentario {
+.contenedor-comentarios .comentario-principal-usuario .texto, .inputs-comentarios .area-comentario {
     border: 0;
     margin-top: 0.8rem;
     background-color: #F0F0F0;
@@ -348,6 +349,12 @@ body {
     align-items: flex-start;
     margin-bottom: 1rem;
 }
+.comment-input-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Ajusta el margen inferior según necesites */
+}
+
 
 .info{
     font-size: 1em;
@@ -418,7 +425,9 @@ body {
     display: flex;
     flex-direction: column;
 }
-
+.perfil-usuario-body1{
+    width: 50%;
+}
 .seccion-perfil-usuario .redes-sociales .boton-redes {
     border: 0;
     background-color: #fff;
@@ -443,19 +452,14 @@ body {
 }
 
 
-/*Media Quaries*/
 
 
+
+/* Media Quaries */
 @media screen and (max-width: 480px) {
     .publicacion-cometario {
         width: 100%; /* Cambia el ancho al 100% para ocupar todo el ancho disponible */
     }
-
-    .area-comentar {
-        width: 100%; /* Cambia el ancho al 100% para ocupar todo el ancho disponible */
-    }
-
-    
 
     .perfil-usuario-portada {
         width: 100%; /* Cambia el ancho al 100% para ocupar todo el ancho disponible */
@@ -482,9 +486,11 @@ body {
         width: 100%;
         height: 200px;
     }
-    .perfil-usuario-body1 {
-        width: 85%;
-      }
-
-      
+    
+    .perfil-usuario-body1{
+        width: 90%;
+    }
+    .area-comentar{
+        width: 480%;
+    }    
 }

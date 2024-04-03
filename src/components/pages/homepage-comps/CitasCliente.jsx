@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { API_URL } from '../../../Autentication/constanst';
 import { useAuth } from '../../../Autentication/AutProvider';
 import NabarMenu from './NabarMenu';
@@ -51,7 +51,7 @@ const CitasCliente = () => {
       console.log('estado de cancelacion', response);
       const data = await response.json();
       console.log('cita cancelada ', data);
-      
+
       // Actualizar la lista de citas después de la cancelación
       await Swal.fire({
         icon: 'success',
@@ -75,29 +75,30 @@ const CitasCliente = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
           {Array.isArray(datos) && datos.length > 0 ? (
             datos.map((cita, index) => (
-              <div key={index} className="shadow-md rounded-lg">
-                <div className="bg-gray-100 p-4 rounded-t-lg">
+              <div key={index} className="shadow-md rounded-lg relative" style={{ border: '3px solid black' }}>
+                <div className=" p-4 rounded-t-lg backdrop-filter backdrop-blur-lg bg-opacity-70">
                   <h2 className="text-white bg-black text-lg font-bold px-4 py-2 rounded-t-lg">
                     Cita Programada
                   </h2>
                   <div className="mt-4">
-                    <p className="font-semibold text-black">Fecha:</p>
-                    <p className='text-black'>{formatFecha(cita.date)}</p>
-                    <p className="font-semibold text-black">Hora:</p>
-                    <p className='text-black'>{formatHora(cita.hora)}</p>
-                    <p className="font-semibold text-black">Profesional:</p>
-                    <p className='text-black'>{cita.nombre}</p>
+                    <p className="font-semibold text-white">Fecha:</p>
+                    <p className='text-white'>{formatFecha(cita.date)}</p>
+                    <p className="font-semibold text-white">Hora:</p>
+                    <p className='text-white'>{formatHora(cita.hora)}</p>
+                    <p className="font-semibold text-white">Profesional:</p>
+                    <p className='text-white'>{cita.nombre}</p>
                   </div>
-                  <button onClick={() => cancelarCita(cita._id)} className='bg-black p-5 rounded-lg my-5'>Cancelar cita</button>
+                  <button onClick={() => cancelarCita(cita._id)} className='bg-black p-5 rounded-lg my-5 text-white'>Cancelar cita</button>
                 </div>
               </div>
             ))
           ) : (
             <div className="col-md-6 mt-4">
-              <p>No hay citas pendientes</p>
+              <p className="text-white">No hay citas pendientes</p>
             </div>
           )}
         </div>
+
       </div>
     </>
   );

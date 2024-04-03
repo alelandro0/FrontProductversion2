@@ -1,22 +1,27 @@
+import React, { useState } from 'react';
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Autentication/AutProvider";
-import { useState } from "react";
 import { API_URL } from "../../../Autentication/constanst";
 import type { AuthResponse, AuthResponseError } from "../../../types/types";
-import React from "react";
 import Header from "./Header";
 import LogoMulti from "../../../../public/images/logoMulti.png";
-import './Login.css'
+import Loaders from './Loaders'; 
+import './Login.css';
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorResponse, setErrorResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
   const auth = useAuth();
   const goto = useNavigate();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setIsLoading(true);
+    setShowLoader(true);
+
     try {
       const response = await fetch(`${API_URL}/login`, {
         method: "POST",
@@ -44,6 +49,9 @@ export default function Login() {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
+      setShowLoader(false);
     }
   }
 
@@ -69,7 +77,7 @@ export default function Login() {
                   type="text" 
                   id="username" 
                   name="username" 
-                  placeholder="Ingrese su correo electronico"
+                  placeholder="Ingrese su correo electrónico"
                   value={username} 
                   onChange={(e) => setUsername(e.target.value)} 
                   className="p-3 bg-transparent border-2 rounded-md text-white focus:outline-none focus:border-blue-600" 
@@ -93,12 +101,17 @@ export default function Login() {
 
               {!!errorResponse && <div className="text-red-500">{errorResponse}</div>}
 
-              <button 
-                type="submit" 
-                className="group text-white font-semibold w-fit px-6 py-3 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0"
-              > 
-                Iniciar Sesión  
-              </button>
+              <div className="relative">
+                <button 
+                  type="submit" 
+                  className="group text-white font-semibold w-fit px-6 py-3 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0"
+                  disabled={isLoading}
+                > 
+                  {isLoading ? 'Cargando...' : 'Iniciar Sesión'}
+                </button> <br />
+
+                <Loaders show={showLoader} /> <br />
+              </div>
             </form>
             
             <div className="ml-8 relative z-20">
@@ -110,7 +123,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-10"> {/* Añadir margen superior */}
             <p>¿No tienes una cuenta? <a href="/signup" className="text-blue-600">Registrarse</a></p>
           </div>
         </div>
@@ -118,3 +131,4 @@ export default function Login() {
     </>
   );
 }
+

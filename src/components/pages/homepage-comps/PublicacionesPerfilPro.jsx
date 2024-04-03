@@ -32,6 +32,10 @@ const PublicacionesPerfilPro = () => {
   const [descripcionP, setdeProfesion] = useState('')
   const [, setError] = useState("");
   const [nombreUsuario, setNombreUsuario] = useState('');
+  const [like, setLike] = useState(false)
+  const [nuevoComentario, setNuevoComentario] = useState('');
+  const [mostrarComentarios, setMostrarComentarios] = useState({});
+  const [verComentario, setVerComentario] = useState({})
  
 
 
@@ -440,6 +444,109 @@ const PublicacionesPerfilPro = () => {
    useEffect(() => {
      setNombreUsuario(nombreUsuario);
    }, [nombreUsuario]);
+   const HandleLikes = async (userId, publicationId) => {
+
+    if (!like) {
+      console.log(userId, "  ", publicationId);
+      try {
+        const responseLikes = await fetch(`${API_URL}/likes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId, publicationId })
+        });
+
+        if (!responseLikes.ok) {
+          throw new Error('No se pudo dar like a la publicación');
+        }
+
+        const data = await responseLikes.json();
+        getPublishAllUsers()
+        setLike(true)
+        console.log('respuesta del servidor', data);
+      } catch (error) {
+        console.error('Error al dar like:', error);
+      }
+    } else {
+      try {
+        const responseDislike = await fetch(`${API_URL}/dislikes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId, publicationId })
+        });
+
+        if (!responseDislike.ok) {
+          throw new Error('No se pudo quitar el like de la publicación');
+        }
+        getPublishAllUsers()
+        setLike(false)
+        console.log('respuesta del servidor', await responseDislike.json());
+      } catch (error) {
+        console.error('Error al quitar like:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    HandleLikes();
+  }, []); // Incluye like como dependencia
+
+  const agregarComentario = async (userId, publicationId, comentario) => {
+    console.log("userId:", userId);
+    console.log("publicationId:", publicationId);
+    console.log("comentario:", comentario);
+    try {
+      const response = await fetch(`${API_URL}/comentario`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, publicationId, comentario }),
+      });
+      const data = await response.json();
+      obtenerTodasLasPublicaciones()
+      getPublishAllUsers();
+      // Manejar la respuesta del servidor (mostrar mensaje de éxito/error, actualizar la interfaz, etc.)
+      console.log(data.message);
+    } catch (error) {
+      console.error('Error al agregar comentario:', error);
+    }
+  };
+  const verComentarios = async (_id, publicationId) => {
+    console.log('publicacion', publicationId);
+    console.log('usuario', _id);
+    try {
+      const response = await fetch(`${API_URL}/vercomentario/${_id}/${publicationId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('respose de comentarios', response);
+      if (!response.ok) {
+        throw new Error('Error al obtener los comentarios');
+      }
+
+      const data = await response.json();
+      console.log('comentarios', data);
+      setVerComentario(prevState => ({
+        ...prevState,
+        [publicationId]: data,
+      }));
+      setMostrarComentarios(prevState => ({
+        ...prevState,
+        [publicationId]: !prevState[publicationId],
+      }));
+      obtenerTodasLasPublicaciones()
+      getPublishAllUsers();
+    } catch (error) {
+      console.error('Error al obtener los comentarios:', error.message);
+    }
+  }
+
    
   return (
     <div name='Perfil'
@@ -569,14 +676,59 @@ const PublicacionesPerfilPro = () => {
                   <img className=' ' src={publicacion?.image} alt="" />
                 </div>
                 <div className="botones-comentario " style={{ marginTop: 12 }}>
-                  <button type="" className="boton-puntuar"
+                  <button type="" 
+                  className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md"
+                  onClick={() => HandleLikes(publicacion.profesionalId, publicacion.id)}
                    style={{ display: 'flex', gap: 5, padding: '12px' }}>
                     <FontAwesomeIcon icon={faThumbsUp} style={{ marginLeft: 2 }} />
-                    <p>45</p>
+                    <p>{publicacion.likes}</p>
                   </button>
-                  <button type="" className="boton-responder">
+                  <div>
+                <label htmlFor="comment"> </label>
+                    <input
+                      type="text"
+                      className="border m-8 w-4/5 sm:w-80 md:w-96 lg:w-4/5 xl:w-4/5 border-gray-300 rounded-md py-2 px-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                      name="comment"
+                      value={nuevoComentario}
+                      onChange={(e) => setNuevoComentario(e.target.value)}
+                      placeholder="Escribe tu comentario..."
+                    />
+                </div>
+                  <button  type=""
+                      className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md"
+                      onClick={() => agregarComentario(publicacion?.profesionalId, publicacion?.id, nuevoComentario)}
+                      >
                     Comentar
                   </button>
+                  <button 
+                     onClick={() => verComentarios(publicacion?.profesionalId, publicacion?.id)}
+                     className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md">
+                      Ver comentario</button>
+                      {mostrarComentarios[publicacion.id] && (
+                    <div className="py-4">
+                      {verComentario[publicacion.id] && verComentario[publicacion.id].comentarios && verComentario[publicacion.id].comentarios.length > 0 ? (
+                        verComentario[publicacion.id].comentarios.map((comentario, index) => (
+                          <div key={index} className="mb-4">
+                            <div className="flex items-start">
+                              <img
+                                src={comentario.imagenPerfil}
+                                alt="Imagen de perfil"
+                                className="w-12 h-12 rounded-full border-2 border-white mr-4 bg-white"
+                              />
+                              <div className="flex-1">
+                                <h1 className="text-white mb-2">{comentario.nombre}</h1>
+                                <div className="border border-white rounded-md p-4 bg-gray-900">
+                                  <p className="text-white">{comentario.respuesta}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-white">No hay comentarios</p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {/* <button className='citas'></button><h4>AGENDA</h4> */}
               </li>

@@ -5,7 +5,8 @@ import { useAuth } from '../../../Autentication/AutProvider';
 import type { AuthResponseError } from "../../../types/types";
 import Header from "./Header";
 import LogoMulti from "../../../../public/images/logoMulti.png";
-import './Login.css'
+import Loaders from './Loaders'; 
+import './Login.css';
 
 export const Registro = () => {
   const [name, setName] = useState("");
@@ -13,13 +14,17 @@ export const Registro = () => {
   const [password, setPassword] = useState('');
   const [roll, setRoll] = useState("");
   const [errorResponse, setErrorResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Nuevo estado para el loader
   const auth = useAuth();
   const goto = useNavigate();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setIsLoading(true); // Establecer isLoading en true al hacer clic en el botón de enviar
+
     if (!roll) {
       setErrorResponse("Por favor, selecciona el tipo de usuario.");
+      setIsLoading(false); // Establecer isLoading en false si hay un error
       return;
     }
 
@@ -39,14 +44,17 @@ export const Registro = () => {
 
       if (response.ok) {
         setErrorResponse("");
+        setIsLoading(false); // Establecer isLoading en false si el registro es exitoso
         goto("/iniciar-sesion");
       } else {
         const json = (await response.json()) as AuthResponseError;
         setErrorResponse(json.body.error);
+        setIsLoading(false); // Establecer isLoading en false si hay un error en la respuesta
         return;
       }
     } catch (error) {
       console.log(error);
+      setIsLoading(false); // Establecer isLoading en false si hay un error de red
     }
   }
 
@@ -126,12 +134,16 @@ export const Registro = () => {
 
               {!!errorResponse && <div className="text-red-500 mb-4">{errorResponse}</div>}
 
-              <button 
-                type="submit" 
-                className="group text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0"
-              > 
-                Registrarse  
-              </button>
+              <div className="relative">
+                <button 
+                  type="submit" 
+                  className="group text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0"
+                  disabled={isLoading}
+                > 
+                  {isLoading ? 'Cargando...' : 'Registrarse'}
+                </button>
+                <Loaders show={isLoading} /> {/* Agregar el loader aquí */}
+              </div>
             </form>
             
             <div className="ml-8 relative z-20">

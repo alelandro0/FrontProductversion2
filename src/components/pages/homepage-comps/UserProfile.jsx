@@ -40,8 +40,10 @@ const UserProfile = () => {
   const [transparentBackground, setTransparentBackground] = useState(false);
   const [profesionalesId, setIdP] = useState('')
   const [nombreUsuario, setNombreUsuario] = useState('');
-  const [like, setLike] =useState(false)
- 
+  const [like, setLike] = useState(false)
+  const [nuevoComentario, setNuevoComentario] = useState('');
+  const [mostrarComentarios, setMostrarComentarios] = useState({});
+  const [verComentario, setVerComentario] = useState({})
 
   const auth = useAuth();
   useEffect(() => {
@@ -404,6 +406,92 @@ const UserProfile = () => {
     }
   };
 
+  const agregarComentario = async (userId, publicationId, comentario) => {
+    console.log("userId:", userId);
+    console.log("publicationId:", publicationId);
+    console.log("comentario:", comentario);
+    try {
+      const response = await fetch(`${API_URL}/comentario`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, publicationId, comentario }),
+      });
+      const data = await response.json();
+      // Manejar la respuesta del servidor (mostrar mensaje de éxito/error, actualizar la interfaz, etc.)
+      console.log(data.message);
+    } catch (error) {
+      console.error('Error al agregar comentario:', error);
+    }
+  };
+
+  const eliminarComentario = async (userId, publicationId, comentarioId) => {
+    try {
+      const response = await fetch(`${API_URL}/comentario`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, publicationId, comentarioId }),
+      });
+      const data = await response.json();
+      // Manejar la respuesta del servidor (mostrar mensaje de éxito/error, actualizar la interfaz, etc.)
+      console.log(data.message);
+    } catch (error) {
+      console.error('Error al eliminar comentario:', error);
+    }
+  };
+
+  const editarComentario = async (userId, publicationId, comentarioId, nuevoComentario) => {
+    try {
+      const response = await fetch(`${API_URL}/comentario`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, publicationId, comentarioId, nuevoComentario }),
+      });
+      const data = await response.json();
+      // Manejar la respuesta del servidor (mostrar mensaje de éxito/error, actualizar la interfaz, etc.)
+      console.log(data.message);
+    } catch (error) {
+      console.error('Error al editar comentario:', error);
+    }
+  };
+
+  const verComentarios = async (_id, publicationId) => {
+    console.log('publicacion', publicationId);
+    console.log('usuario', _id);
+    try {
+      const response = await fetch(`${API_URL}/vercomentario/${_id}/${publicationId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('respose de comentarios', response);
+      if (!response.ok) {
+        throw new Error('Error al obtener los comentarios');
+      }
+
+      const data = await response.json();
+      console.log('comentarios', data);
+      setVerComentario(prevState => ({
+        ...prevState,
+        [publicationId]: data,
+      }));
+      setMostrarComentarios(prevState => ({
+        ...prevState,
+        [publicationId]: !prevState[publicationId],
+      }));
+      obtenerTodasLasPublicaciones()
+      getPublishAllUsers();
+    } catch (error) {
+      console.error('Error al obtener los comentarios:', error.message);
+    }
+  }
+
   //ELIMINAR PUBLICACION 
   const deleteHandler = async (idPublicacion) => {
     try {
@@ -495,32 +583,32 @@ const UserProfile = () => {
       // Aquí puedes manejar el error, por ejemplo, mostrando un mensaje de error al usuario.
     }
   };
-  const nombreUser = ( nuevoNombreUsuario) => {
-   console.log('este es le nombre de userprofile',nuevoNombreUsuario);
+  const nombreUser = (nuevoNombreUsuario) => {
+    console.log('este es le nombre de userprofile', nuevoNombreUsuario);
     auth.setUserName(nuevoNombreUsuario)
   };
   useEffect(() => {
     setNombreUsuario(nombreUsuario);
   }, [nombreUsuario]);
- 
+
   //LIKES Y DESLIKES
-  const HandleLikes = async(userId,publicationId) => {
-   
+  const HandleLikes = async (userId, publicationId) => {
+
     if (!like) {
-      console.log(userId,"  ",publicationId );
+      console.log(userId, "  ", publicationId);
       try {
-        const responseLikes = await fetch(`${API_URL}/likes`, {  
+        const responseLikes = await fetch(`${API_URL}/likes`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({userId,publicationId})
+          body: JSON.stringify({ userId, publicationId })
         });
-        
+
         if (!responseLikes.ok) {
           throw new Error('No se pudo dar like a la publicación');
         }
-  
+
         const data = await responseLikes.json();
         getPublishAllUsers()
         setLike(true)
@@ -537,7 +625,7 @@ const UserProfile = () => {
           },
           body: JSON.stringify({ userId, publicationId })
         });
-  
+
         if (!responseDislike.ok) {
           throw new Error('No se pudo quitar el like de la publicación');
         }
@@ -549,16 +637,17 @@ const UserProfile = () => {
       }
     }
   };
-  
+
   useEffect(() => {
     HandleLikes();
   }, []); // Incluye like como dependencia
-  
 
- 
+
+
   return (
     <div name='Perfil'
-      className='profile-container relative  '><section className="seccion-perfil-usuario ">
+      className='profile-container relative  '>
+      <section className="seccion-perfil-usuario ">
         <div className="perfil-usuario-header">
           <div className="perfil-usuario-portada " style={{ margin: 30 }} >
             <input
@@ -567,7 +656,7 @@ const UserProfile = () => {
               style={{ display: 'none' }}
               onChange={(e) => handleProfileImageChange(e.target.files)}
             />
-            {console.log( 'id de usuario', 'id publicacion',idPublicacion)}
+            {console.log('id de usuario', 'id publicacion', idPublicacion)}
             <div className="perfil-usuario-avatar relative z-10" onClick={() => setEditingProfileImage(true)}>
               <img src={downloadURL} alt="img-avatar" className="avatar-img " />
               <label htmlFor="fileInput" style={{ background: 'black' }}
@@ -590,7 +679,7 @@ const UserProfile = () => {
             </label>
           </div>
         </div>
-        <div className="perfil-usuario-body1" style={{ width: '50%', backgroundColor: 'black', color: 'white', padding: '20px', borderRadius: '10px' }}>
+        <div className="perfil-usuario-body1" style={{ backgroundColor: 'black', color: 'white', padding: '20px', borderRadius: '10px' }}>
           <div className="perfil-usuario-bio" style={{ display: 'flex', flexDirection: 'column', background: "transparent" }}>
             <div>
               <h2 className='infor'>Información Personal:</h2>
@@ -614,7 +703,7 @@ const UserProfile = () => {
           </div>) : null}
 
         </div>
-        {auth.getUser().roll === "Profesional" ? (<div className="area-comentar" style={{ height: '20vh' }}>
+        {auth.getUser().roll === "Profesional" ? (<div className="area-comentar " >
           <div className="avatar">
             <img src={downloadURL} alt="img" />
           </div>
@@ -644,12 +733,8 @@ const UserProfile = () => {
             </div>
           </form>
         </div>) : null}
-
-
         {/* {puplicaiones personales} */}
-
-        <div className='publicacion-cometario '>
-          {console.log(publicaciones)}
+        <div className='publicacion-cometario'>
           {publicaciones.map((publicacion, index) => (
             <div className="publicacion-realizada" key={index}>
               <div className="usuario-publico">
@@ -677,21 +762,76 @@ const UserProfile = () => {
               <div className="archivo-publicado py-6">
                 <img src={publicacion.image} />
               </div>
-              <div className="botones-comentario">
-                <button type="" className="boton-puntuar">
-                  <FontAwesomeIcon icon={faThumbsUp} />
-                  <p>{publicacion.likes}</p>
-                </button>
-                <button type="" className="boton-responder">
+              <div className="botones-comentario flex items-center">
+                <div>
+                  {/* <button
+                    onClick={() => HandleLikes(publicacion.profesionalId, publicacion.id)}
+                    className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md"
+                  >
+                    <FontAwesomeIcon icon={faThumbsUp} />
+                    <p>{publicacion.likes}</p>
+                  </button> */}
+                </div>
+                <div className="comment-input-container">
+                  <label htmlFor="comment" className="mr-2">Comentar:</label>
+                  <input
+                    type="text"
+                    id="comment"
+                    className="border w-4/5 sm:w-80 md:w-96 lg:w-4/5 xl:w-4/5 border-gray-300 rounded-md py-2 px-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                    name="comment"
+                    value={nuevoComentario}
+                    onChange={(e) => setNuevoComentario(e.target.value)}
+                    placeholder="Escribe tu comentario..."
+                  />
+                </div>
+
+                <button
+                  type=""
+                  className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md"
+                  onClick={() => agregarComentario(publicacion?.profesionalId, publicacion?.id, nuevoComentario)}
+                >
                   Comentar
                 </button>
-                
+                <button
+                  onClick={() => verComentarios(publicacion?.profesionalId, publicacion?.id)}
+                  className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md"
+                >
+                  Ver comentarios
+                </button>
               </div>
+
+
+
+              {mostrarComentarios[publicacion.id] && (
+                <div className="py-4">
+                  {verComentario[publicacion.id] && verComentario[publicacion.id].comentarios && verComentario[publicacion.id].comentarios.length > 0 ? (
+                    verComentario[publicacion.id].comentarios.map((comentario, index) => (
+                      <div key={index} className="mb-4">
+                        <div className="flex items-start">
+                          <img
+                            src={comentario.imagenPerfil}
+                            alt="Imagen de perfil"
+                            className="w-12 h-12 rounded-full border-2 border-white mr-4 bg-white"
+                          />
+                          <div className="flex-1">
+                            <h1 className="text-white mb-2">{comentario.nombre}</h1>
+                            <div className="border border-white rounded-md p-4 bg-gray-900">
+                              <p className="text-white">{comentario.respuesta}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-white">No hay comentarios</p>
+                  )}
+                </div>
+              )}
+
             </div>
           ))}
+          <div style={{ height: 50 }}></div>
         </div>
-
-
 
         <div style={{ height: 50 }}></div>
         {/* todas las publicaciones */}
@@ -702,19 +842,19 @@ const UserProfile = () => {
             Array.isArray(usuarioPublicaciones) && usuarioPublicaciones.map((publicacion, subIndex) => (
               <li className='publicacion-realizada' key={`${index}-${subIndex}`}>
                 <div className='usuario-publico  publicacionesall'>
-                  {console.log("P",profesionalesId,"I",idPublicacion)}
+                  {console.log("P", profesionalesId, "I", idPublicacion)}
                   <div className='flex items-center gap-1'>
                     <div className='avatar'>
                       <img src={publicacion.imageProfile || 'https://thumbs.dreamstime.com/b/vector-de-perfil-avatar-predeterminado-foto-usuario-medios-sociales-icono-183042379.jpg'} alt="" />
                     </div>
                     <div className='flex flex-col font-sans font-arial'>
-                  
+
                       <div className='flex ' >
-                      
-                      <h2 className='nameUser px-3' onClick={() => nombreUser( publicacion.name)}>
-                     
-                        {console.log('nombre del usuario de la publicacion ', publicacion.name)}
-                          <Link  to="/selectUser"> 
+
+                        <h2 className='nameUser px-3' onClick={() => nombreUser(publicacion.name)}>
+
+                          {console.log('nombre del usuario de la publicacion ', publicacion.name)}
+                          <Link to="/selectUser">
                             {publicacion.name ?? ""}
                           </Link>
                         </h2>
@@ -742,19 +882,66 @@ const UserProfile = () => {
                   <img className=' ' src={publicacion?.image} alt="" />
                 </div>
                 <div className="botones-comentario" style={{ marginTop: 12 }}>
-                <button type=""
-                onClick={()=> HandleLikes(publicacion.profesionalId,publicacion.id)
-                }
-                 className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md">
-                  <FontAwesomeIcon icon={faThumbsUp} />
-                  <p>{publicacion.likes}</p>
-                </button>
-                  <button
-                    type=""
-                    className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md"
-                  >
-                    Comentar
-                  </button>
+                  {/* <button type=""
+                    onClick={() => HandleLikes(publicacion.profesionalId, publicacion.id)}
+                    className="text-white font-semibold w-fit px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer mx-auto md:mx-0 p-3 rounded-md">
+                    <FontAwesomeIcon icon={faThumbsUp} />
+                    <p>{publicacion.likes}</p>
+                  </button> */}
+
+                  <div>
+                    <label htmlFor="comment" className="mr-2">Comentar:</label>
+                    <input
+                      type="text"
+                      className="border m-1 sm:m-2 w-4/5 sm:w-80 md:w-96 lg:w-4/5 xl:w-4/5 border-gray-300 rounded-md py-2 px-4 text-sm text-black-700 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                      name="comment"
+                      value={nuevoComentario}
+                      onChange={(e) => setNuevoComentario(e.target.value)}
+                      placeholder="Escribe tu comentario..."
+                    />
+                    <button
+                      type="button"
+                      className="text-white font-semibold px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer"
+                      onClick={() => agregarComentario(publicacion?.profesionalId, publicacion?.id, nuevoComentario)}
+                    >
+                      Comentar
+                    </button>
+                    <button
+                      type="button"
+                      className="text-white font-semibold px-6 py-3 my-2 flex items-center rounded-md bg-gradient-to-t from-blue-600 cursor-pointer"
+                      onClick={() => verComentarios(publicacion?.profesionalId, publicacion?.id)}
+                    >
+                      Ver comentarios
+                    </button>
+
+                    {mostrarComentarios[publicacion.id] && (
+                      <div className="py-4" >
+                        {verComentario[publicacion.id] && verComentario[publicacion.id].comentarios && verComentario[publicacion.id].comentarios.length > 0 ? (
+                          verComentario[publicacion.id].comentarios.map((comentario, index) => (
+                            <div key={index} className="mb-4">
+                              <div className="flex items-start">
+                                <img
+                                  src={comentario.imagenPerfil}
+                                  alt="Imagen de perfil"
+                                  className="w-12 h-12 rounded-full border-2 border-white mr-4 bg-white"
+                                />
+                                <div className="flex-1">
+                                  <h1 className="text-white ">{comentario.nombre}</h1>
+                                  <div className="border border-black rounded-md p-4 bg-white">
+                                    <p className="text-black">{comentario.respuesta}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-black">No hay comentarios</p>
+                        )}
+                      </div>
+                    )}
+
+                  </div>
+
                 </div>
 
                 {/* <button className='citas'></button><h4>AGENDA</h4> */}
